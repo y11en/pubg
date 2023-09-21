@@ -29,11 +29,11 @@ namespace Offset {
     //Class: UWorld
     int UWorldToPersistentLevel = 0x90; //Level* PersistentLevel;
     int UWorldToNetDriver = 0x98; //NetDriver* NetDriver;
-    int UWorldToCurrentLevel = 0x770; //Level* CurrentLevel;
+    int UWorldToCurrentLevel = 0x8a8; //Level* CurrentLevel;
     int UWorldToLevels = 0x748; //Level* Levels;
 
     //Class: PlayerCameraManager
-    int dw_CameraCacheEntry = 0x5a0;//CameraCacheEntry CameraCache;
+    int dw_CameraCacheEntry = 0x5b0;//CameraCacheEntry CameraCache;
 
     //Class: CameraCacheEntry
     int dw_MinimalViewInfo = 0x10; //MinimalViewInfo POV;
@@ -50,32 +50,32 @@ namespace Offset {
     int ServerConnectionToPlayerController = 0x30; //PlayerController* PlayerController;
 
     //Class: PlayerController
-    int playerCameraManagerOffset = 0x5c0; //PlayerCameraManager* PlayerCameraManager;
-    int uMyObjectOffset = 0x5a0; //Pawn* AcknowledgedPawn;
+    int playerCameraManagerOffset = 0x5c8; //PlayerCameraManager* PlayerCameraManager;
+    int uMyObjectOffset = 0x5a8; //Pawn* AcknowledgedPawn;
 
     //Class: Controller
-    int controlRotationOffset = 0x560;//Rotator ControlRotation;
+    int controlRotationOffset = 0x568;//Rotator ControlRotation;
 
     //Class: Actor
     int RoleOffset = 0x1f8;//byte Role;
     int RootComponentOffset = 0x268;//对象坐标指针 SceneComponent* RootComponent;
-    int VelocityOffset = 0xe4c;//预判向量 Vector VelocitySafety;
+    int VelocityOffset = 0xe8c;//预判向量 Vector VelocitySafety;
     int RotationAngleOffset = 0x170 + 0x24 + 0x4;//旋转角 RepMovement ReplicatedMovement; + 0x24 + 0x4
     int CoordinateOffset = 0x188;//坐标偏移 K2_GetActorLocation，获取到actor后，观察坐标变化，可以获取到偏移量
 
     // Class: STExtraCharacter
-    int RideVehicleOffset = 0xf60;//STExtraVehicleBase* CurrentVehicle;
-    int StateOffset = 0x12c8;//人物状态 PawnStateRepSyncData PawnStateRepSyncData;//[Offset: 0x12c8, Size: 0x20]
-    int HealthOffset = 0xd60;//血量 float Health;
-    int maxHealthOffset = 0xd68;//最大血量
+    int RideVehicleOffset = 0xfa8;//STExtraVehicleBase* CurrentVehicle;
+    int StateOffset = 0x1310;//人物状态 PawnStateRepSyncData PawnStateRepSyncData;//[Offset: 0x12c8, Size: 0x20]
+    int HealthOffset = 0xda0;//血量 float Health;
+    int maxHealthOffset = 0xda8;//最大血量
 
     //Class: UAECharacter
-    int TeamIDOffset = 0xa48;// 队伍 int TeamID;
-    int isBotOffset = 0xa64; //人机 bool bIsAI;
+    int TeamIDOffset = 0xa50;// 队伍 int TeamID;
+    int isBotOffset = 0xa6c; //人机 bool bIsAI;
     int PlayerNameOffset = 0x9d0;//人物名字 FString PlayerName;
 
     //Class: Character.
-    int BoneAddrOffset = 0x5b8;//阵列  SkeletalMeshComponent* Mesh;
+    int BoneAddrOffset = 0x5c0;//阵列  SkeletalMeshComponent* Mesh;
 
     //Class: SceneComponent
     int BoneMatrixOffset = 0x19c + 0xC; //基矩阵 Vector RelativeScale3D; + 0xC
@@ -92,18 +92,18 @@ namespace Offset {
     int resistanceOffset = 0x1718;//枪口上抬 float AccessoriesVRecoilFactor;
 
     //Class: STExtraPlayerController
-    int fireButtonOffset = 0x3cb0; //开火键 bool bIsPressingFireBtn;
-    int adsOffset = 0x13f8;//开镜 bool bIsGunADS;
+    int fireButtonOffset = 0x3f38; //开火键 bool bIsPressingFireBtn;
+    int adsOffset = 0x1480;//开镜 bool bIsGunADS;
 
     //Class: STExtraBaseCharacter
-    int lastUpdateStatusKeyListOffset = 0x29a8;// AnimStatusKeyList LastUpdateStatusKeyList;
+    int lastUpdateStatusKeyListOffset = 0x2ab8;// AnimStatusKeyList LastUpdateStatusKeyList;
 
     //Class: AnimStatusKeyList
     int equipWeaponOffset = 0x20; //STExtraWeapon* EquipWeapon; 装备武器
 
     //Class: STExtraShootWeapon
-    int shootModeOffset = 0xfb4; //byte ShootMode; 模式
-    int gunOffset = 0x11b8;//射击武器实体 ShootWeaponEntity* ShootWeaponEntityComp;
+    int shootModeOffset = 0xfd4; //byte ShootMode; 模式
+    int gunOffset = 0x11d8;//射击武器实体 ShootWeaponEntity* ShootWeaponEntityComp;
     int weaponOffset = lastUpdateStatusKeyListOffset + equipWeaponOffset;
     int holdingStateOffset = weaponOffset - 0x14;//手持武器状态
 
@@ -114,7 +114,7 @@ namespace Offset {
     int weaponIDOffset = 0x9a8;//武器ID int RepWeaponID;
 
     //Class: STExtraShootWeapon
-    int weaponAmmoOffset = 0xfa8;//剩余子弹 int CurBulletNumInClip;
+    int weaponAmmoOffset = 0xfc8;//剩余子弹 int CurBulletNumInClip;
     int weaponClipOffset = weaponAmmoOffset + 0x4;//弹夹 int CurMaxBulletNumInOneClip;
     int ShootWeaponComponentOffset = 0xed0;//STExtraShootWeaponComponent* ShootWeaponComponent;
 
@@ -127,11 +127,11 @@ namespace Offset {
 //    int GMatrix = 0xB641670;// 08 01 ?? ?? 49 09 ?? ?? 4A 01 ?? ?? STR XZR, [X19,#(qword_ACBA2D0 - 0xACBA200)]
 
 
-    int GNames = 0xC8E6A30;//"ShadowTrackerExtra" 搜索文本
-    int GWorld = 0xCD69ED0;// 搜索文本  aANullObjectWas
-    int GActivity = 0xC88D980;// 搜索文本 Created event thread
-    int GScreen = 0xC869A9C;//***** WindowWidth is %d, not using res cache
-    int GObject = 0xCB69330;//ADRL X19, unk_AB0BB50  ObjectHash.EnableShrink //static bool IsValid(const Object* Object);
+    int GNames = 0xCC602B0;//"ShadowTrackerExtra" 搜索文本
+    int GWorld = 0xD0EB4E8;// 搜索文本  aANullObjectWas
+    int GActivity = 0xCC04C80;// 搜索文本 Created event thread
+    int GScreen = 0xCBE0D1C;//***** WindowWidth is %d, not using res cache
+    int GObject = 0xCEE9EB0;//ADRL X19, unk_AB0BB50  ObjectHash.EnableShrink //static bool IsValid(const Object* Object);
     int GMatrix = 0xCD18F80;// 08 01 ?? ?? 49 09 ?? ?? 4A 01 ?? ?? STR XZR, [X19,#(qword_ACBA2D0 - 0xACBA200)]
     //搜索 r.ResetViewState
 //    int LineOfSightToOffset = 0x7d0a168;
@@ -146,11 +146,11 @@ namespace Offset {
 
     int PawnOffset;//Class: Controller.Actor.Object Pawn* Pawn;//[Offset: 0x538, Size: 0x8]
 
-    int LineOfSightToOffset = 0x7576444;
-    int GetBoneNameOffset = 0x7542720;
-    int GetBoneLocationOffset = 0x75445D8;
-    int GetNumBonesOffset = 0x7542708;
-    int ProjectWorldLocationToScreenOffset = 0x797851C;
+    int LineOfSightToOffset = 0x63272D8;
+    int GetBoneNameOffset = 0x7747664;
+    int GetBoneLocationOffset = 0x774951C;
+    int GetNumBonesOffset = 0x774764C;
+    int ProjectWorldLocationToScreenOffset = 0x7B8634C;
     int AddYawInputOffset ;
     int AddPitchInputOffset;
 

@@ -58,6 +58,7 @@ include_directories(include
         include/PtraceInject
         #include/HideLibrary
         include/MainLooper
+        include/input
         src)
 
 include_directories(include/shadowhook
@@ -80,7 +81,9 @@ add_library(${MODULE_NAME} SHARED main.cpp ${CMAKE_CURRENT_BINARY_DIR}/config.cp
         src/Draw.cpp
         src/Menu.cpp
         src/GameUtils.cpp
-        
+
+        include/input/touch_helper.cpp
+
         include/cJson/cJSON.c
         include/strnormalize/strnormalize.cpp
         include/MapTools/MapTools.cpp

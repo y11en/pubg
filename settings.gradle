@@ -23,4 +23,4 @@ dependencyResolutionManagement {
 DirectoryScanner.removeDefaultExclude('**/.gitattributes')
 
 include ':module'
-include ':test'
+
