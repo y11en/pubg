@@ -1447,7 +1447,6 @@ void createDataList() {
 
                 if (aimData != 0) {
                     if (isSafeAddress(mesh_, Offset::PointerSize)) {
-
                         if (aimLocation == 0) {  //"头部"
                             ObjInfo = getBoneLoc(mesh_, 5);
                             ObjInfo.Z += 7;
