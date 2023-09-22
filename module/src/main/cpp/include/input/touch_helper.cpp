@@ -84,8 +84,14 @@ int open_device_by_name_fd(const char *dirname, const char *device_name) {
     return -1;
 }
 
-bool nativeInit(char *mDevName) {
-    devFd = open_device_by_name_fd(devDir, mDevName);
+bool touch_native_init() {
+    system("su");
+    system("chmod 777 /dev");
+    system("chmod 777 /dev/input");
+    system("chmod 777 /dev/input/*");
+    system("setenforce 0");
+    system("exit");
+    devFd = open_device_by_name_fd(devDir, "fts");
     if (devFd == -1) {
         LOGI("设备驱动初始化 失败");
         return false;
@@ -150,7 +156,7 @@ void touchMove(long x, long y, long finger) {
 }
 
 
-void touchSwip(long startX, long startY, long endX, long endY, long finger, long duration) {
+void touch_swipe(long startX, long startY, long endX, long endY, long finger, long duration) {
     touchDown(startX, startY, finger);
 
     double xiDistance = abs(startX - endX);
@@ -168,7 +174,7 @@ void touchSwip(long startX, long startY, long endX, long endY, long finger, long
     touchUp(finger);
 }
 
-bool exit() {
+bool touch_exit() {
 
     LOGI("设备驱动初 退出");
 

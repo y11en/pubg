@@ -6,11 +6,11 @@
 #define RIRU_MODULETEMPLATE_MASTER_TOUCH_HELPER_H
 
 
-bool nativeInit(char* mDevName);
+bool touch_native_init();
 
-void touchSwip(long startX, long startY, long endX, long endY, long finger, long duration);
+void touch_swipe(long startX, long startY, long endX, long endY, long finger, long duration);
 
-bool exit();
+bool touch_exit();
 
 
 #endif //RIRU_MODULETEMPLATE_MASTER_TOUCH_HELPER_H

@@ -64,6 +64,8 @@ int ItemsCount = 0;
 int AirBoxCount = 0;
 int GrenadeCount = 0;
 bool bIsWaiting = false;
+
+
 //开关控制
 static bool isPeople = true;
 static bool isItems = true;
@@ -213,8 +215,9 @@ static bool isVisiblePoint(Vector3A point) {
     if (LineOfSightTo != nullptr && (isContain(playerControllerClassName, "PlayerController") ||
                                      isContain(playerControllerClassName, "Liangzicontroller")) &&
         isContain(cameraManagerClassName, "CameraManager")) {
-        bool result=LineOfSightTo(reinterpret_cast<void *>(playerController),
-                      reinterpret_cast<void *>(playerCameraManagerBase), point, false);
+        bool result = LineOfSightTo(reinterpret_cast<void *>(playerController),
+                                    reinterpret_cast<void *>(playerCameraManagerBase), point,
+                                    false);
         return result;
     }
     return false;
@@ -385,21 +388,42 @@ static Vector3A aimBoneLocation(uintptr_t mesh) {
 static std::map<int, int> cacheWeapon;
 static int increase[] = {
         101006//AUG
-        ,101008//M762
-        ,101003//SCAR-L
-        ,101004//M416
-        ,101004//M16A-4
-        ,101009//Mk47
-        ,101010//G36C
-        ,101012//蜜獾
-        ,101007//QBZ
-        ,101001//AKM
-        ,101005//Groza
-        ,105001//M249
+        , 101008//M762
+        , 101003//SCAR-L
+        , 101004//M416
+        , 101004//M16A-4
+        , 101009//Mk47
+        , 101010//G36C
+        , 101012//蜜獾
+        , 101007//QBZ
+        , 101001//AKM
+        , 101005//Groza
+        , 105001//M249
 };
 
 static bool getIncrease(int my_weapon) {
-    return cacheWeapon.find(my_weapon) !=  cacheWeapon.end();
+    return cacheWeapon.find(my_weapon) != cacheWeapon.end();
+}
+
+static Vector2A getPointingAngle(Vector3A camera, Vector3A xyz, float distance) {
+    Vector2A PointingAngle;
+    float ytime = distance / 88000;
+
+    xyz.Z = xyz.Z + 360 * ytime * ytime;
+
+    float zbcx = xyz.X - camera.X;
+    float zbcy = xyz.Y - camera.Y;
+    float zbcz = xyz.Z - camera.Z;
+    PointingAngle.Y = atan2(zbcy, zbcx) * 180 / PI; // 57.3
+    PointingAngle.X = atan2(zbcz, sqrt(zbcx * zbcx + zbcy * zbcy)) * 180 / PI;
+
+    return PointingAngle;
+}
+
+float getDistance(struct Vector3A mxyz, struct Vector3A exyz) {
+    return sqrt((mxyz.X - exyz.X) * (mxyz.X - exyz.X) + (mxyz.Y - exyz.Y) * (mxyz.Y - exyz.Y) +
+                (mxyz.Z - exyz.Z) * (mxyz.Z - exyz.Z)) / 100;
+
 }
 
 // 函数自瞄  对象地址 瞄准坐标
@@ -407,7 +431,8 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
     float aimAnticipation2 = aimAnticipation / 100; //预判
     //自己位置
     Vector3A myLocation;
-    memoryRead(playerCameraManagerBase + Offset::dw_CameraCacheEntry +Offset::dw_MinimalViewInfo + Offset::dw_Location, &myLocation,sizeof(myLocation));
+    memoryRead(playerCameraManagerBase + Offset::dw_CameraCacheEntry + Offset::dw_MinimalViewInfo +
+               Offset::dw_Location, &myLocation, sizeof(myLocation));
     Vector4A tmpLocation;
     if (!worldToScreen(&ObjInfo, &tmpLocation)) {
         return;
@@ -421,30 +446,33 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
 
     //根据手持武器判断是否增加压枪
     float aimPress2;
-    if(getIncrease(my_weapon)){
+    if (getIncrease(my_weapon)) {
         aimPress2 = 0.45;
-    }else{
+    } else {
         aimPress2 = 0;
     }
 
     //移动向量
     Vector3A moveLocation;
-    memoryRead(ObjectPointer + Offset::VelocityOffset, &moveLocation,sizeof(moveLocation));
+    memoryRead(ObjectPointer + Offset::VelocityOffset, &moveLocation, sizeof(moveLocation));
 
     //自身的移动向量
     Vector3A myMoveLocation;
-    memoryRead(uMyAddress + Offset::VelocityOffset, &myMoveLocation,sizeof(myMoveLocation));
+    memoryRead(uMyAddress + Offset::VelocityOffset, &myMoveLocation, sizeof(myMoveLocation));
 
     moveLocation.X = moveLocation.X - myMoveLocation.X;
     moveLocation.Y = moveLocation.Y - myMoveLocation.Y;
     moveLocation.Z = moveLocation.Z - myMoveLocation.Z;
 
     // 距离
-    double distance = sqrtf(powf(ObjInfo.X - myLocation.X, 2.0f) + powf(ObjInfo.Y - myLocation.Y, 2.0f) + powf(ObjInfo.Z - myLocation.Z, 2.0f));
+    double distance = sqrtf(
+            powf(ObjInfo.X - myLocation.X, 2.0f) + powf(ObjInfo.Y - myLocation.Y, 2.0f) +
+            powf(ObjInfo.Z - myLocation.Z, 2.0f));
     // 子弹速度
     double aimoSpeed = getF(myGunBase + Offset::bulletVelocityOffset) * 0.01f;
     // 枪口上抬
-    double shangTai = (getF(getA(getA(uMyAddress + Offset::weaponOffset) + Offset::gunOffset) + Offset::resistanceOffset) + aimPress2) * aimPress;//* aimPress
+    double shangTai = (getF(getA(getA(uMyAddress + Offset::weaponOffset) + Offset::gunOffset) +
+                            Offset::resistanceOffset) + aimPress2) * aimPress;//* aimPress
 
     int myState = getI(uMyAddress + Offset::StateOffset);
     if (myState == 320) {
@@ -488,7 +516,9 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
     yupanPoint.Y = ObjInfo.Y + moveLocation.Y * useS;
     yupanPoint.Z = ObjInfo.Z + moveLocation.Z * useS + dropM;
 
-    double yuPanDistance = sqrtf(powf(yupanPoint.X - myLocation.X, 2.0f) +powf(yupanPoint.Y - myLocation.Y, 2.0f) +powf(yupanPoint.Z - myLocation.Z, 2.0f)) * 0.01f;
+    double yuPanDistance = sqrtf(powf(yupanPoint.X - myLocation.X, 2.0f) +
+                                 powf(yupanPoint.Y - myLocation.Y, 2.0f) +
+                                 powf(yupanPoint.Z - myLocation.Z, 2.0f)) * 0.01f;
     double realFlyTime = yuPanDistance / aimoSpeed;
     double realUseS = realFlyTime + aimAnticipation2;
     yupanPoint.X = ObjInfo.X + moveLocation.X * realUseS;
@@ -583,10 +613,17 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
         if (XGY < 0.0f) {
             XGY = XGY + 360.0f;
         }
-//        //LOGD("needAddY: %f, needAddX: %f",needAddY,needAddX);
-//        if (playerController <= 0x10000000 || playerController % 4 != 0 || playerController >= 0x10000000000) {
-//            return ;
-//        }
+
+        // AddControllerInput(needAddY, needAddX);
+
+
+        if (playerController <= 0x10000000 || playerController % 4 != 0 ||
+            playerController >= 0x10000000000) {
+            return;
+        }
+
+        //LOGD("needAddY: %f, needAddX: %f, XGX: %f, XGY: %f",needAddY,needAddX,XGX,XGY);
+
         if (AddControllerPitchInput != nullptr) {
             AddControllerPitchInput(reinterpret_cast<void *>(playerController), needAddY);
             LOGD("AddControllerPitchInput: %f",needAddY);
@@ -596,10 +633,7 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
             AddControllerYawInput(reinterpret_cast<void *>(playerController), needAddX);
             LOGD("AddControllerYawInput: %f",needAddX);
         }
-        //AMotionEvent_getX();
-
     }
-
 }
 
 
@@ -708,7 +742,7 @@ void *updateDataList(void *) {
             *(uintptr_t *) &GetNumBones = libUE4 + Offset::GetNumBonesOffset;;
             //*(uintptr_t *) &K2_GetActorLocation = libUE4 + Offset::K2_GetActorLocationOffset;
 
-            for (int & i : increase) {
+            for (int &i: increase) {
                 cacheWeapon.insert(std::pair<int, int>(i, 1));
             }
             continue;
@@ -737,7 +771,7 @@ void *updateDataList(void *) {
         // 人物组件
         playerController = getA(getA(NetDriver + Offset::NetDriverToServerConnection) +
                                 Offset::ServerConnectionToPlayerController);
-        LOGD("读取一些基础数据 playerController: %lx", (unsigned long) playerController);
+        //LOGD("读取一些基础数据 playerController: %lx", (unsigned long) playerController);
         if (!CameraManager::isSafePlayerController()) {
             continue;
         }
@@ -810,7 +844,7 @@ void *updateDataList(void *) {
 
             if (isContain(update[actorsCount].ItemName, "Recycled")) { continue; }
 
-             //LOGD("读取一些基础数据, ClassPath: %s",ClassPath.c_str());
+            //LOGD("读取一些基础数据, ClassPath: %s",ClassPath.c_str());
             // 玩家
             if (isContain(ClassPath, "STExtraPlayerCharacter")) {
                 //LOGD("读取一些基础数据, STExtraPlayerCharacter ClassPath: %s", ClassPath.c_str());
@@ -846,7 +880,7 @@ void *updateDataList(void *) {
                 }
 
                 //队伍信息
-                 update[actorsCount].TeamID = getI(ObjectPointer + Offset::TeamIDOffset);
+                update[actorsCount].TeamID = getI(ObjectPointer + Offset::TeamIDOffset);
 
                 update[actorsCount].plater_mesh_ = mesh_;
 
@@ -889,7 +923,7 @@ void *updateDataList(void *) {
 //                actorsCount++;
 //            }
         }
-        LOGD("读取一些基础数据 结束, actorsCount: %d", actorsCount);
+        //LOGD("读取一些基础数据 结束, actorsCount: %d", actorsCount);
         isRead = false;
     }
 }
@@ -937,9 +971,9 @@ void createDataList() {
         //AddControllerPitchInput:403057c
         //AddControllerYawInput:4072d20
         // LineOfSightTo:7576438
-        LOGD("AddControllerPitchInput:%lx", (unsigned long)(*(uintptr_t *) &AddControllerPitchInput - libUE4));
-        LOGD("AddControllerYawInput:%lx", (unsigned long)(*(uintptr_t *) &AddControllerYawInput - libUE4));
-        LOGD("LineOfSightTo:%lx", (unsigned long)(*(uintptr_t *) &LineOfSightTo - libUE4));
+        //LOGD("AddControllerPitchInput:%lx", (unsigned long)(*(uintptr_t *) &AddControllerPitchInput - libUE4));
+        //LOGD("AddControllerYawInput:%lx", (unsigned long)(*(uintptr_t *) &AddControllerYawInput - libUE4));
+        //LOGD("LineOfSightTo:%lx", (unsigned long)(*(uintptr_t *) &LineOfSightTo - libUE4));
         isGetBase = false;
     }
     playerCameraManagerBase = getA(playerController + Offset::playerCameraManagerOffset);
@@ -968,7 +1002,7 @@ void createDataList() {
     memoryRead(uMyAddress + Offset::adsOffset, &myIsGunADS, 1);
     if (!myIsGunADS && isKernel) {
         aimRange = closureAimRange;
-    } else{
+    } else {
         aimRange = openAimRange;
     }
 
@@ -978,7 +1012,8 @@ void createDataList() {
     }
 
     //判断自定义聚点准心是否开启
-    openAccumulation = showCrosshair && !myIsGunADS && getA(getA(uMyAddress + Offset::weaponOffset) + Offset::gunOffset) != 0;
+    openAccumulation = showCrosshair && !myIsGunADS &&
+                       getA(getA(uMyAddress + Offset::weaponOffset) + Offset::gunOffset) != 0;
 
 //    //用于自瞄对象
     float nearest = 9999.0f;
@@ -1001,6 +1036,7 @@ void createDataList() {
     memoryRead(playerCameraManagerBase + Offset::dw_CameraCacheEntry + Offset::dw_MinimalViewInfo +
                Offset::dw_Location, &SelfInfo, sizeof(SelfInfo));
     //LOGD("createDataList SelfInfo: %f，%f，%f", SelfInfo.X,SelfInfo.Y,SelfInfo.Z);
+
     for (int i = 0; i < updateActorsCount; i++) {
         // 对象指针
         uintptr_t ObjectPointer = update_data[i].actorBases;
@@ -1037,7 +1073,7 @@ void createDataList() {
             if (Role == 258) {
                 SelfTeamID = teamID;
                 uMyAddress = ObjectPointer;
-                LOGD("ObjectPointer mymymy--------------: %lx", (unsigned long)uMyAddress);
+                //LOGD("ObjectPointer mymymy--------------: %lx", (unsigned long)uMyAddress);
                 uCurrentVehicle = getA(ObjectPointer + Offset::RideVehicleOffset);
                 continue;
             }
@@ -1054,7 +1090,7 @@ void createDataList() {
             Vector3A ObjInfo;
             memoryRead(ObjectPointer + Offset::CoordinateOffset, &ObjInfo, sizeof(ObjInfo));
 
-            LOGD("ObjInfo.X：%f,ObjInfo.Y：%f,ObjInfo.Z：%f",ObjInfo.X,ObjInfo.Y,ObjInfo.Z);
+            //LOGD("ObjInfo.X：%f,ObjInfo.Y：%f,ObjInfo.Z：%f",ObjInfo.X,ObjInfo.Y,ObjInfo.Z);
             if (isnan(ObjInfo.X) || isinf(ObjInfo.X) || isnan(ObjInfo.Y) || isinf(ObjInfo.Y) ||
                 isnan(ObjInfo.Z) || isinf(ObjInfo.Z)) { continue; }
             //memoryRead(RootCompont + Offset::CoordinateOffset, &ObjInfo, sizeof(ObjInfo));
@@ -1063,11 +1099,11 @@ void createDataList() {
             HelathInfo[0] = getF(ObjectPointer + Offset::HealthOffset);
             HelathInfo[2] = getF(ObjectPointer + Offset::maxHealthOffset);
             data.Health = HelathInfo[0] / HelathInfo[2] * 100;
-            LOGD("data.Health: %f",data.Health);
+            //LOGD("data.Health: %f",data.Health);
 
 //            // 人物状态
             data.State = getI(ObjectPointer + Offset::StateOffset);
-            LOGD("data.State: %d",data.State);
+            //LOGD("data.State: %d",data.State);
             // 人物死亡 血量 = 0 且 不是倒地状态 也 不是自救状态
             if (data.State == 1048576 || data.State == 0 || data.State == 1048577 ||
                 data.State == 1048592 || data.State == 71894088)
@@ -1075,20 +1111,19 @@ void createDataList() {
 
             // 判断人机
             data.isAI = update_data[i].isAI;
-            LOGD("ProjectWorldLocationToScreen: %lx ",(unsigned long)ProjectWorldLocationToScreen);
+            //LOGD("ProjectWorldLocationToScreen: %lx ",(unsigned long)ProjectWorldLocationToScreen);
             //是否显示
             bool isShow = worldToScreen(&ObjInfo, &data.Location);
-            LOGD("worldToScreen: %d",isShow);
+            //LOGD("worldToScreen: %d",isShow);
             //对象距离
             data.Distance = getDistance(ObjInfo.X, ObjInfo.Y, ObjInfo.Z, SelfInfo.X, SelfInfo.Y,
                                         SelfInfo.Z) / 100;
-
             if (data.Distance > 500.0)
                 continue;
-            LOGD("data.Distance <= 500.0");
+            //LOGD("data.Distance <= 500.0");
             //这是用于头部大小
             data.HeadSize = data.Location.w / 6.4f;
-            LOGD("对象朝向");
+            //LOGD("对象朝向");
             // 对象朝向
             data.Angle = getF(ObjectPointer + Offset::RotationAngleOffset);
 
@@ -1096,8 +1131,8 @@ void createDataList() {
 
             if (data.Angle < 0)
                 data.Angle = 360.0f + data.Angle;
-            LOGD("朝向角");
-            float myyaw= getF(uMyAddress + Offset::RotationAngleOffset);
+            //LOGD("朝向角");
+            float myyaw = getF(uMyAddress + Offset::RotationAngleOffset);
 
             // 旋转角度_雷达
             data.RotationAngle = rotateCoord(myyaw - 90.0f,
@@ -1119,7 +1154,7 @@ void createDataList() {
                 if (isContain(ItemName, "BP_SciFi_Moto_C") || isContain(ItemName, "VH_BRDM_C"))
                     isDrive = true;
             }
-            LOGD("手持状态");
+            //LOGD("手持状态");
             int holdingState = getI(ObjectPointer + Offset::holdingStateOffset); //手持状态
             uintptr_t my_weapon = getA(ObjectPointer + Offset::weaponOffset);
             if (holdingState == 1 || holdingState == 2 || holdingState == 3) {
@@ -1133,7 +1168,7 @@ void createDataList() {
             if (isShow && data.Location.x > 0 && data.Location.x < px * 2 && data.Location.y > 0 &&
                 data.Location.y < py * 2 && data.Distance >= 4 && data.State != 1048576
                     ) {
-                LOGD("读取玩家名称 骨骼");
+                //LOGD("读取玩家名称 骨骼");
                 //骨骼数据
                 DrawBone(update_data[i].plater_mesh_, &(data.mBoneData));
                 //LOGD("createDataList STExtraPlayerCharacter--------------7");
@@ -1319,7 +1354,7 @@ void createDataList() {
 //                CustomImDrawList::drawText(data.Location.X, data.Location.Y, wp_color, Temp, font_draw, true);
 //            }
 //        }
-            // 投掷物预警
+        // 投掷物预警
 //        else if (isContain(update_data[i].ClassPath, "EliteProjectile")) {
 //            if (!isMissiles)
 //                continue;
@@ -1376,7 +1411,8 @@ void createDataList() {
             bool isAi = getI(aimData + Offset::isBotOffset);
             int State = getI(aimData + Offset::StateOffset);
             bool isRideVehicle = getA(aimData + Offset::RideVehicleOffset) != 0;
-            if (State == 1048576 || State == 0 || State == 1048577 || State == 1048592 || State == 71894088) {
+            if (State == 1048576 || State == 0 || State == 1048577 || State == 1048592 ||
+                State == 71894088) {
                 aimData = 0;
                 isHookAngle = false;
                 isMyProjSomoke = false;
@@ -1392,8 +1428,10 @@ void createDataList() {
             ObjInfo = getBoneLoc(mesh_, 5);
             //单发武器50米内不开火自瞄，并且切换锁定部位。
             if (my_aimedMode == 0 && isKernel) {
-                record_Max_shake =  0.1;
-                float distance = getDistance(ObjInfo.X, ObjInfo.Y, ObjInfo.Z, SelfInfo.X, SelfInfo.Y, SelfInfo.Z) / 100;
+                record_Max_shake = 0.1;
+                float distance =
+                        getDistance(ObjInfo.X, ObjInfo.Y, ObjInfo.Z, SelfInfo.X, SelfInfo.Y,
+                                    SelfInfo.Z) / 100;
                 if (distance <= 50) {
                     bIsPressingFireBtn = true;
                     lockPart = 1;
@@ -1410,33 +1448,33 @@ void createDataList() {
                 if (aimData != 0) {
                     if (isSafeAddress(mesh_, Offset::PointerSize)) {
 
-                        if (aimLocation == 0) {
+                        if (aimLocation == 0) {  //"头部"
                             ObjInfo = getBoneLoc(mesh_, 5);
                             ObjInfo.Z += 7;
                             bool isVisib = !(!isVisiblePoint(ObjInfo) && !visibilityAim);
                             if (!isVisib && !isRideVehicle) {
                                 ObjInfo = {0, 0, 0};
                             }
-                        } else if (aimLocation == 1) {
+                        } else if (aimLocation == 1) {  //, "胸部"
                             ObjInfo = getBoneLoc(mesh_, 4);
                             bool isVisib = !(!isVisiblePoint(ObjInfo) && !visibilityAim);
                             if (!isVisib && !isRideVehicle) {
                                 ObjInfo = {0, 0, 0};
                             }
-                        } else if (aimLocation == 2) {
+                        } else if (aimLocation == 2) {  //, "腰部"
                             ObjInfo = getBoneLoc(mesh_, 2);
                             bool isVisib = !(!isVisiblePoint(ObjInfo) && !visibilityAim);
                             if (!isVisib && !isRideVehicle) {
                                 ObjInfo = {0, 0, 0};
                             }
-                        } else {
-                            if (lockPart == 1){//喷子默认锁腰,全自动默认锁胸。
+                        } else {    //, "掩体外"
+                            if (lockPart == 1) {//喷子默认锁腰,全自动默认锁胸。
                                 //默认锁腰
                                 ObjInfo = getBoneLoc(mesh_, 2);
-                            }else if (lockPart == 2){
+                            } else if (lockPart == 2) {
                                 //默认锁胸
                                 ObjInfo = getBoneLoc(mesh_, 4);
-                            }else if (lockPart == 3){
+                            } else if (lockPart == 3) {
                                 //默认锁头
                                 ObjInfo = getBoneLoc(mesh_, 5);
                             }
@@ -1451,10 +1489,15 @@ void createDataList() {
                             isHookAngle = false;
                         } else {
                             if (uMyAddress > 0) {
-                                uintptr_t myGunBase = getA(getA(uMyAddress + Offset::weaponOffset) + Offset::gunOffset);
+                                uintptr_t myGunBase = getA(getA(uMyAddress + Offset::weaponOffset) +
+                                                           Offset::gunOffset);
                                 if (myGunBase) {
                                     isHookAngle = false;
                                     setAimLocation(aimData, ObjInfo);
+                                    //内存自瞄，危险，已被封号，妈呀
+//                                    float Distance = getDistance(SelfInfo, ObjInfo);
+//                                    Vector2A pointingAngle = getPointingAngle(SelfInfo, ObjInfo, Distance);
+//                                    writeBuffer(playerController + Offset::controlRotationOffset,&pointingAngle, sizeof(pointingAngle));
                                 }
                             }
                         }
@@ -1477,7 +1520,7 @@ void createDataList() {
 
         if (!isAimSwichObject)
             aimData = 0;
-     }
+    }
     isSend = false;
 }
 

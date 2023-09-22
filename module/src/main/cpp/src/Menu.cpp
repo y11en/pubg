@@ -40,6 +40,7 @@
 #include "Menu.h"
 #include "JniHelper.h"
 #include "ConfigUtils.h"
+#include "touch_helper.h"
 #include <MainLooper.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <elf_util.h>
@@ -110,7 +111,7 @@ int radarType = 1;
 bool showNum = true;
 bool isKernel = true;
 bool visibilityAim = false, dieNoAim = false, aiAim = true, isDlip = false, aimbot = false, my_aimbot = true, showBoxItem = true;
-int aimLocation = 3, aimedMode = 3, aimChoose = 1, aimType = 0;
+int aimLocation = 0, aimedMode = 3, aimChoose = 1, aimType = 0;
 float openAimRange = 50.f, closureAimRange = 50.f, touchSpeed = 50.f, touchPress = -10, aimPress = 1.0f, aimSpeed = 10.0f, aimAnticipation = 10.0f;
 float max_shake = 0.3;
 float SlideRanges = 200;
@@ -859,10 +860,10 @@ void *hook_read_thread(void *) {
     //LOGD("hook_read_thread------------offset GActivity正确");
 
     // hook 触摸
-    bytehook_init(BYTEHOOK_MODE_AUTOMATIC, false);
-    bytehook_hook_single("libinput.so", nullptr,
-                         "_ZN7android13InputConsumer21initializeMotionEventEPNS_11MotionEventEPKNS_12InputMessageE",
-                         (void *) initializeMotionEvent, nullptr, nullptr);
+//     bytehook_init(BYTEHOOK_MODE_AUTOMATIC, false);
+//    bytehook_hook_single("libinput.so", nullptr,
+//                         "_ZN7android13InputConsumer21initializeMotionEventEPNS_11MotionEventEPKNS_12InputMessageE",
+//                         (void *) initializeMotionEvent, nullptr, nullptr);
 //
 //    // 判断小米12 和 K50
 //    char marketName[PROP_VALUE_MAX] = {0};
@@ -872,6 +873,7 @@ void *hook_read_thread(void *) {
 //        return nullptr;
 //    }
     LOGD("hook_read_thread------------判断是否有悬浮权限");
+    //touch_native_init();
     while (!HasWindows) {
         HasWindows = canDrawOverlays();
         if (!HasWindows) {
