@@ -56,6 +56,7 @@ namespace Offset {
     //Class: Controller
     int controlRotationOffset = 0x568;//Rotator ControlRotation;
 
+
     //Class: Actor
     int RoleOffset = 0x1f8;//byte Role;
     int RootComponentOffset = 0x268;//对象坐标指针 SceneComponent* RootComponent;
@@ -151,6 +152,7 @@ namespace Offset {
     int GetBoneLocationOffset = 0x774951C;
     int GetNumBonesOffset = 0x774764C;
     int ProjectWorldLocationToScreenOffset = 0x7B8634C;
+    int ResetRotation=0x41B3928;
     int AddYawInputOffset ;
     int AddPitchInputOffset;
 

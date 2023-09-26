@@ -37,6 +37,9 @@ static void (*AddControllerPitchInput)(void *myBase, float val) = nullptr;
 
 static int (*GetNumBones)(void *mesh) = nullptr;
 
+static void (*ClientSetRotation)(void *controller,Rotator NewRotation, bool bResetCamera) = nullptr;// 0x7f1b740
+static void (*SetControlRotation)(void *controller, Rotator NewRotation);// 0x7f1bc58
+static void (*ResetRotation)(void *controller,float Pitch, float Yaw, float Roll);
 //static Vector3A (*K2_GetActorLocation)(void *actor) = nullptr;// 0x7cac184
 
 static bool isGetBase = true;
@@ -443,7 +446,7 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
 
     //手持ID
     int my_weapon = getI(getA(uMyAddress + Offset::weaponOffset) + Offset::weaponIDOffset);
-
+    LOGD("my_weapon: %d", my_weapon);
     //根据手持武器判断是否增加压枪
     float aimPress2;
     if (getIncrease(my_weapon)) {
@@ -451,7 +454,7 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
     } else {
         aimPress2 = 0;
     }
-
+    LOGD("aimPress2: %f", aimPress2);
     //移动向量
     Vector3A moveLocation;
     memoryRead(ObjectPointer + Offset::VelocityOffset, &moveLocation, sizeof(moveLocation));
@@ -468,13 +471,16 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
     double distance = sqrtf(
             powf(ObjInfo.X - myLocation.X, 2.0f) + powf(ObjInfo.Y - myLocation.Y, 2.0f) +
             powf(ObjInfo.Z - myLocation.Z, 2.0f));
+    LOGD("distance: %f", distance);
     // 子弹速度
     double aimoSpeed = getF(myGunBase + Offset::bulletVelocityOffset) * 0.01f;
+    LOGD("aimoSpeed: %f", aimoSpeed);
     // 枪口上抬
     double shangTai = (getF(getA(getA(uMyAddress + Offset::weaponOffset) + Offset::gunOffset) +
                             Offset::resistanceOffset) + aimPress2) * aimPress;//* aimPress
-
+    LOGD("shangTai: %f", shangTai);
     int myState = getI(uMyAddress + Offset::StateOffset);
+    LOGD("myState: %d", myState);
     if (myState == 320) {
         //趴下腰射
         shangTai /= 4;
@@ -488,15 +494,18 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
         //趴下开镜
         shangTai /= 2.5;
     }
-
+    LOGD("shangTai: %f", shangTai);
     //单发模式
     int fireTypeInt = getI(getA(uMyAddress + Offset::weaponOffset) + Offset::shootModeOffset);
+    LOGD("fireTypeInt: %d", fireTypeInt);
     char fireType = (char) ((fireTypeInt >> 8) & 0xFF);
     if (fireType == 1) {
         shangTai = aimPress2 / 4;
     }
 
     int State = getI(ObjectPointer + Offset::StateOffset);
+
+    LOGD("State: %d", State);
     if (State == 33554448) {
         shangTai = aimPress2 * 2;
     }
@@ -537,11 +546,12 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
     double pfg = sqrtf((cx * cx) + (cy * cy));
 
     float max_shake2 = record_Max_shake;//= 0.5f + (float) (random() % 100) / 100.0f;//0.8- 0.99
-
+    LOGD("max_shake2: %f", max_shake2);
     ShakeValue = ShakeValue + 0.05f * Orientation;
     if (fabs(ShakeValue) >= max_shake2) {
         Orientation = -Orientation;
     }
+    LOGD("Orientation: %f", Orientation);
 
     double XGX, XGY;
     if (max_shake2 > 0) {
@@ -570,9 +580,11 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
         float currentRotationY = getF(playerController + Offset::controlRotationOffset + 0);//P
         float currentRotationX = getF(playerController + Offset::controlRotationOffset + 4);//Y
 
+        LOGD("currentRotationY: %f, currentRotationX: %f", currentRotationY, currentRotationX);
+
         float needAddY = XGY - currentRotationY;//P
         float needAddX = XGX - currentRotationX;//Y
-
+        LOGD("needAddY: %f, needAddX: %f", needAddY, needAddX);
         //358 = -2
         //181 = -179
         if (needAddX > 180.0f) {
@@ -622,17 +634,15 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
             return;
         }
 
-        //LOGD("needAddY: %f, needAddX: %f, XGX: %f, XGY: %f",needAddY,needAddX,XGX,XGY);
+        LOGD("needAddY: %f, needAddX: %f", needAddY, needAddX);
 
-        if (AddControllerPitchInput != nullptr) {
-            AddControllerPitchInput(reinterpret_cast<void *>(playerController), needAddY);
-            LOGD("AddControllerPitchInput: %f",needAddY);
-        }
-
-        if (AddControllerYawInput != nullptr) {
-            AddControllerYawInput(reinterpret_cast<void *>(playerController), needAddX);
-            LOGD("AddControllerYawInput: %f",needAddX);
-        }
+//        if (AddControllerPitchInput != nullptr) {
+//            AddControllerPitchInput(reinterpret_cast<void *>(playerController), needAddY);
+//        }
+//
+//        if (AddControllerYawInput != nullptr) {
+//            AddControllerYawInput(reinterpret_cast<void *>(playerController), needAddX);
+//        }
     }
 }
 
@@ -741,7 +751,7 @@ void *updateDataList(void *) {
                     libUE4 + Offset::ProjectWorldLocationToScreenOffset;
             *(uintptr_t *) &GetNumBones = libUE4 + Offset::GetNumBonesOffset;;
             //*(uintptr_t *) &K2_GetActorLocation = libUE4 + Offset::K2_GetActorLocationOffset;
-
+            *(uintptr_t *) &ResetRotation = libUE4 + Offset::ResetRotation;;
             for (int &i: increase) {
                 cacheWeapon.insert(std::pair<int, int>(i, 1));
             }
@@ -965,7 +975,8 @@ void createDataList() {
         //10 + 2504LL
         *(uintptr_t *) &AddControllerPitchInput = getA(vtable + 0x9C0);
         *(uintptr_t *) &AddControllerYawInput = getA(vtable + 0x9C8);
-
+        *(uintptr_t *) &ClientSetRotation = getA(vtable + 0x878);
+        *(uintptr_t *) &SetControlRotation = getA(vtable + 0x898);
         //AddControllerYawInput   a1 + 2512LL
         //playerController 7c25c24000
         //AddControllerPitchInput:403057c
@@ -1492,7 +1503,79 @@ void createDataList() {
                                                            Offset::gunOffset);
                                 if (myGunBase) {
                                     isHookAngle = false;
-                                    setAimLocation(aimData, ObjInfo);
+                                    //setAimLocation(aimData, ObjInfo);
+                                    float Distance = getDistance(SelfInfo, ObjInfo);
+                                    Vector2A pointingAngle = getPointingAngle(SelfInfo, ObjInfo,
+                                                                              Distance);
+                                    Rotator rotator{};
+                                    rotator.Y = pointingAngle.X;
+                                    rotator.X = pointingAngle.Y;
+                                    float currentRotationRoll = getF(
+                                            playerController + Offset::controlRotationOffset +
+                                            8);//Y
+                                    rotator.Roll = currentRotationRoll;
+//                                    if (ClientSetRotation != nullptr) {
+//                                        ClientSetRotation(reinterpret_cast<void *>(playerController),rotator,
+//                                                          true);
+//                                    }
+                                    if (ResetRotation != nullptr) {
+                                        ResetRotation(reinterpret_cast<void *>(playerController),pointingAngle.X,
+                                                      pointingAngle.Y,currentRotationRoll);
+                                    }
+//                                    LOGD("pointingAngle--------------%f,%f", pointingAngle.X,
+//                                         pointingAngle.Y);
+//
+//                                    float currentRotationY = getF(
+//                                            playerController + Offset::controlRotationOffset +
+//                                            0);//P
+//                                    float currentRotationX = getF(
+//                                            playerController + Offset::controlRotationOffset +
+//                                            4);//Y
+//                                    LOGD("currentRotation1--------------%f,%f", currentRotationY,
+//                                         currentRotationX);
+//
+//                                    //358 = -2
+//                                    //181 = -179
+//                                    if (currentRotationY > 180.0f) {
+//                                        currentRotationY = currentRotationY - 360.0f;
+//                                    }
+//                                    //-358 = 2
+//                                    //-181 = 179
+//                                    if (currentRotationY < -180.0f) {
+//                                        currentRotationY = 360.0f + currentRotationY;
+//                                    }
+//
+//                                    if (currentRotationX > 180.0f) {
+//                                        currentRotationX = currentRotationX - 360.0f;
+//                                    }
+//                                    //-358 = 2
+//                                    //-181 = 179
+//                                    if (currentRotationX < -180.0f) {
+//                                        currentRotationX = 360.0f + currentRotationX;
+//                                    }
+//
+//                                    LOGD("currentRotation2--------------%f,%f", currentRotationY,
+//                                         currentRotationX);
+//
+//                                    float needAddY = pointingAngle.X - currentRotationY;//P
+//
+//                                    float needAddX = pointingAngle.Y - currentRotationX;//Y
+
+//                                    LOGD("needAddY needAddX--------------%f,%f", needAddY,
+//                                         needAddX);
+
+//                                    if (AddControllerPitchInput != nullptr) {
+//
+//                                        AddControllerPitchInput(
+//                                                reinterpret_cast<void *>(playerController),
+//                                                needAddY);
+//                                    }
+//
+//                                    if (AddControllerYawInput != nullptr) {
+//                                        AddControllerYawInput(
+//                                                reinterpret_cast<void *>(playerController),
+//                                                needAddX);
+//                                    }
                                     //内存自瞄，危险，已被封号，妈呀
 //                                    float Distance = getDistance(SelfInfo, ObjInfo);
 //                                    Vector2A pointingAngle = getPointingAngle(SelfInfo, ObjInfo, Distance);
