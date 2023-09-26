@@ -366,46 +366,62 @@ void DrawData(bool type) {
 
 
         //悬浮球
-//        if (!my_window_open) {
-//            if (ImGui::Begin("##悬浮球", nullptr,ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
-//
-//                if (!isSetWindowPos) {
-//                    if (SaveWindowPos.x != -520 && SaveWindowPos.y != -520)
-//                        ImGui::SetWindowPos(SaveWindowPos);
-//                    isSetWindowPos = true;
-//                }
-//
-//                //是否按住编辑等
-//                my_window_focused = ImGui::IsWindowFocused();
-//                if (ImGui::IsItemActive()) {
-//                    if (!isImageDown) {
-//                        //按下
-//                        isImageDown = true;
-//                        suspensionPos = ImGui::GetWindowPos();
-//                    }
-//                } else if (isImageDown) {
-//                    //未按下
-//                    isImageDown = false;
-//                    if (suspensionPos.x == ImGui::GetWindowPos().x && ImGui::GetWindowPos().y == suspensionPos.y)
-//                        my_window_open = !my_window_open;
-//                }
-//
-//                static float LogoSize = 75;//dip2px(40);
-//
-//                ImGui::Image(imageButton.textureId, ImVec2{LogoSize, LogoSize}, ImVec2{0, 0},ImVec2{1, 1});
-//
-//                if (isSetWindowPos)
-//                    SaveWindowPos = ImGui::GetWindowPos();
-//            }
-//            ImGui::End();
-//        }
+        if (!my_window_open) {
+            if (ImGui::Begin("##悬浮球", nullptr,
+                             ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar |
+                             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+
+                if (!isSetWindowPos) {
+                    if (SaveWindowPos.x != -520 && SaveWindowPos.y != -520)
+                        ImGui::SetWindowPos(SaveWindowPos);
+                    isSetWindowPos = true;
+                }
+
+                //是否按住编辑等
+                my_window_focused = ImGui::IsWindowFocused();
+                if (ImGui::IsItemActive()) {
+                    if (!isImageDown) {
+                        //按下
+                        isImageDown = true;
+                        suspensionPos = ImGui::GetWindowPos();
+                    }
+                } else if (isImageDown) {
+                    //未按下
+                    isImageDown = false;
+                    if (suspensionPos.x == ImGui::GetWindowPos().x &&
+                        ImGui::GetWindowPos().y == suspensionPos.y)
+                        my_window_open = !my_window_open;
+                }
+
+                static float LogoSize = 75;//dip2px(40);
+
+                ImGui::Image(imageButton.textureId, ImVec2{LogoSize, LogoSize}, ImVec2{0, 0},
+                             ImVec2{1, 1});
+
+                if (isSetWindowPos)
+                    SaveWindowPos = ImGui::GetWindowPos();
+            }
+            ImGui::End();
+        }
 
         //菜单
-//        if (my_window_open) {
-//            ImGui::SetNextWindowSize(ImVec2(glWidth * 0.45f, glHeight * 0.70f),ImGuiCond_Once); // 45% width 70% height
-//            if (ImGui::Begin(main_window_title, &my_window_open,ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse)) {
-//                my_window_focused = ImGui::IsWindowFocused();
-//                if (ImGui::BeginTabBar("Tab", 1)) {
+        if (my_window_open) {
+            ImGui::SetNextWindowSize(ImVec2(glWidth * 0.3f, glHeight * 0.40f),
+                                     ImGuiCond_Once); // 45% width 70% height
+            if (ImGui::Begin(main_window_title, &my_window_open,
+                             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse)) {
+                my_window_focused = ImGui::IsWindowFocused();
+                if (ImGui::BeginTable("table", 1)) {
+                    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableNextColumn();
+                    ImGui::Checkbox("开启自瞄", &my_aimbot);
+                    ImGui::TableNextColumn();
+                    const char *items[] = {"头部", "胸部", "腰部", "掩体外"};
+                    ImGui::Combo("自瞄位置", &aimLocation, items, IM_ARRAYSIZE(items));
+                    ImGui::EndTable();
+                }
+                //               if (ImGui::BeginTabBar("Tab", 1)) {
 //                    if (ImGui::BeginTabItem("信息")) {
 //                        ImGui::Spacing();
 ////                        ImGui::TextDisabled("系统公告%s", NoteDate.c_str());
@@ -419,7 +435,7 @@ void DrawData(bool type) {
 //                        ImGui::TextWrapped("绘制帧率: [%.3f Ms / %.1f Fps]", 1000.0f / io.Framerate, io.Framerate);
 //                        ImGui::EndTabItem();
 //                    }
-//
+
 //                    if (ImGui::BeginTabItem("透视")) {
 //                        ImGui::Spacing();
 //                        if (ImGui::BeginTable("split", 2)) {
@@ -462,7 +478,7 @@ void DrawData(bool type) {
 //                        }
 //                        ImGui::EndTabItem();
 //                    }
-//
+
 //                    if (ImGui::BeginTabItem("物资")) {
 //                        ImGui::Spacing();
 //                        ImGui::Checkbox("载具", &showVehicle);
@@ -568,13 +584,13 @@ void DrawData(bool type) {
 //                                ImGui::EndTable();
 //                            }
 //                            ImGui::TableNextColumn();
-//                            if (ImGui::BeginTable("split", 1)) {
-//                                ImGui::TableNextColumn();
-//                                const char *items[] = {"头部", "胸部", "腰部", "掩体外"};
-//                                ImGui::Combo("自瞄位置", &aimLocation, items, IM_ARRAYSIZE(items));
-//                                ImGui::EndTable();
-//                            }
-//                            ImGui::TableNextColumn();
+                //                           if (ImGui::BeginTable("split", 1)) {
+                //                               ImGui::TableNextColumn();
+                //                              const char *items[] = {"头部", "胸部", "腰部", "掩体外"};
+                //                               ImGui::Combo("自瞄位置", &aimLocation, items, IM_ARRAYSIZE(items));
+                //                               ImGui::EndTable();
+                //                           }
+                //                           ImGui::TableNextColumn();
 //                            if (ImGui::BeginTable("split", 1)) {
 //                                ImGui::TableNextColumn();
 //                                const char *items[] = {"函数自瞄", "子弹追踪[危险]"};
@@ -583,11 +599,11 @@ void DrawData(bool type) {
 //                            }
 //                            ImGui::TableNextColumn();
 //                            ImGui::EndTable();
-//                        }
-//
+                //                       }
+
 //                        ImGui::EndTabItem();
-//                    }
-//
+                //                   }
+
 //                    if (ImGui::BeginTabItem("设置")) {
 //                        ImGui::Spacing();
 //
@@ -653,9 +669,9 @@ void DrawData(bool type) {
 //                    }
 //                    ImGui::EndTabBar();
 //                }
-//            }
-//            ImGui::End();
-//        }
+            }
+            ImGui::End();
+        }
     }
 //
 //    //渲染
@@ -850,7 +866,7 @@ void *hook_read_thread(void *) {
         sleep(1);
     }
     //setGameOffset(nullptr);
-    LOGD("hook_read_thread------------查找到libUE4.so:: %lx", (unsigned long)libUE4);
+    LOGD("hook_read_thread------------查找到libUE4.so:: %lx", (unsigned long) libUE4);
     while (!g_App) {
         g_App = getAndroidApp();
         sleep(1);
@@ -860,10 +876,10 @@ void *hook_read_thread(void *) {
     //LOGD("hook_read_thread------------offset GActivity正确");
 
     // hook 触摸
-//     bytehook_init(BYTEHOOK_MODE_AUTOMATIC, false);
-//    bytehook_hook_single("libinput.so", nullptr,
-//                         "_ZN7android13InputConsumer21initializeMotionEventEPNS_11MotionEventEPKNS_12InputMessageE",
-//                         (void *) initializeMotionEvent, nullptr, nullptr);
+    bytehook_init(BYTEHOOK_MODE_AUTOMATIC, false);
+    bytehook_hook_single("libinput.so", nullptr,
+                         "_ZN7android13InputConsumer21initializeMotionEventEPNS_11MotionEventEPKNS_12InputMessageE",
+                         (void *) initializeMotionEvent, nullptr, nullptr);
 //
 //    // 判断小米12 和 K50
 //    char marketName[PROP_VALUE_MAX] = {0};
