@@ -12,3 +12,4 @@ android_app *getAndroidApp();
 DisplayMetrics getGameScreenInfo();
 int getMatrixValue();
 int getActorCount();
+
