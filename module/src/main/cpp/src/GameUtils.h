@@ -4,7 +4,6 @@
 #include <Structs.h>
 #include <cJSON.h>
 
-
 string getName(uintptr_t object);
 void *updateDataList(void *);
 void createDataList() ;
