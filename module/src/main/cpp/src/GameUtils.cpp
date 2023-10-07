@@ -121,7 +121,6 @@ static ImVec4 arr[] = {{144 / 255.f, 238 / 255.f, 144 / 255.f, tm},
 };//NOLINT
 static int length = sizeof(arr) / 20;//NOLINT
 
-
 string GetFNameFromID(unsigned int index) {
     uintptr_t FNameEntryArr = getA(GnameAddress + ((index / 0x4000) * Offset::PointerSize));
     uintptr_t FNameEntry = getA(FNameEntryArr + ((index % 0x4000) * Offset::PointerSize));
