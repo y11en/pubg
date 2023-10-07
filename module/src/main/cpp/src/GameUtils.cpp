@@ -633,9 +633,14 @@ static void setAimLocation(uintptr_t ObjectPointer, Vector3A ObjInfo) {
             playerController >= 0x10000000000) {
             return;
         }
-
+        float currentRotationRoll = getF(
+                playerController + Offset::controlRotationOffset +
+                8);//Y
         LOGD("needAddY: %f, needAddX: %f", needAddY, needAddX);
-
+        if (ResetRotation != nullptr) {
+            ResetRotation(reinterpret_cast<void *>(playerController),XGY,
+                          XGX,currentRotationRoll);
+        }
 //        if (AddControllerPitchInput != nullptr) {
 //            AddControllerPitchInput(reinterpret_cast<void *>(playerController), needAddY);
 //        }
@@ -1503,25 +1508,21 @@ void createDataList() {
                                                            Offset::gunOffset);
                                 if (myGunBase) {
                                     isHookAngle = false;
-                                    //setAimLocation(aimData, ObjInfo);
-                                    float Distance = getDistance(SelfInfo, ObjInfo);
-                                    Vector2A pointingAngle = getPointingAngle(SelfInfo, ObjInfo,
-                                                                              Distance);
-                                    Rotator rotator{};
-                                    rotator.Y = pointingAngle.X;
-                                    rotator.X = pointingAngle.Y;
-                                    float currentRotationRoll = getF(
-                                            playerController + Offset::controlRotationOffset +
-                                            8);//Y
-                                    rotator.Roll = currentRotationRoll;
-//                                    if (ClientSetRotation != nullptr) {
-//                                        ClientSetRotation(reinterpret_cast<void *>(playerController),rotator,
-//                                                          true);
+                                   setAimLocation(aimData, ObjInfo);
+//                                    float Distance = getDistance(SelfInfo, ObjInfo);
+//                                    Vector2A pointingAngle = getPointingAngle(SelfInfo, ObjInfo,
+//                                                                              Distance);
+//                                    Rotator rotator{};
+//                                    rotator.Y = pointingAngle.X;
+//                                    rotator.X = pointingAngle.Y;
+//                                    float currentRotationRoll = getF(
+//                                            playerController + Offset::controlRotationOffset +
+//                                            8);//Y
+//                                    rotator.Roll = currentRotationRoll;
+//                                    if (ResetRotation != nullptr) {
+//                                        ResetRotation(reinterpret_cast<void *>(playerController),pointingAngle.X,
+//                                                      pointingAngle.Y,currentRotationRoll);
 //                                    }
-                                    if (ResetRotation != nullptr) {
-                                        ResetRotation(reinterpret_cast<void *>(playerController),pointingAngle.X,
-                                                      pointingAngle.Y,currentRotationRoll);
-                                    }
 //                                    LOGD("pointingAngle--------------%f,%f", pointingAngle.X,
 //                                         pointingAngle.Y);
 //
