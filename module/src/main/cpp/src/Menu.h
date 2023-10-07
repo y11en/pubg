@@ -43,4 +43,5 @@ void install_filter();
 int lock(thread_syscall_t *syscall_thread);
 int unlock(thread_syscall_t *syscall_thread);
 void *call_task(thread_syscall_t *syscall_thread, void *args, int type);
+
 #endif //RIRU_MODULETEMPLATE_MASTER_MENU_H
